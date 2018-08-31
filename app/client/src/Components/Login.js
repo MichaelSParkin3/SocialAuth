@@ -38,6 +38,7 @@ export default class Login extends Component {
     axios({
       method: 'post',
       url: '/login',
+      withCredentials: true,
       data: formData,
       config: {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }

@@ -1,4 +1,6 @@
 // app/routes.js
+var express = require('express');
+const router = express.Router();
 
 var User = require('./models/user');
 
@@ -6,9 +8,9 @@ module.exports = function(app, passport) {
   // =====================================
   // HOME PAGE (with login links) ========
   // =====================================
-  app.get('/', function(req, res) {
-    //res.send('index'); // load the index.ejs file
-  });
+  // app.get('/', function(req, res) {
+  //   //res.send('index'); // load the index.ejs file
+  // });
 
   // =====================================
   // CUSTOM ==============================
@@ -69,7 +71,13 @@ module.exports = function(app, passport) {
       console.log('err' + err);
       //res.send('err ' + err);
       if (user) {
-        res.send('/');
+        //Establish a session and serializeUser
+        req.logIn(user, function(err) {
+          if (err) {
+            return next(err);
+          }
+          return res.send('/');
+        });
       } else if (err == 'wrong password') {
         res.send(err);
       } else if (err == 'no user found') {
@@ -101,12 +109,18 @@ module.exports = function(app, passport) {
     passport.authenticate('local-signup', function(err, user, info) {
       console.log('err' + err);
       //res.send('err ' + err);
-      if (user) {
-        res.send('/');
-      } else if (err == 'User already exists') {
+      if (err == 'User already exists') {
         res.send(err);
       } else if (err == 'weak password') {
         res.send(err);
+      } else if (user) {
+        //Establish a session and serializeUser
+        req.logIn(user, function(err) {
+          if (err) {
+            return next(err);
+          }
+          return res.send('/');
+        });
       }
     })(req, res, next);
   });
@@ -117,7 +131,9 @@ module.exports = function(app, passport) {
   // we will want this protected so you have to be logged in to visit
   // we will use route middleware to verify this (the isLoggedIn function)
   app.get('/profile', isLoggedIn, function(req, res) {
-    res.send('index', {
+    console.log('PROFILE ROUTE');
+    console.log(req.user);
+    res.send({
       user: req.user // get the user out of session and pass to template
     });
   });
@@ -129,13 +145,62 @@ module.exports = function(app, passport) {
     req.logout();
     res.redirect('/');
   });
+
+  // =====================================
+  // FACEBOOK ROUTES =====================
+  // =====================================
+  // route for facebook authentication and login
+
+  //router.get('/facebook', passport.authenticate('facebook'));
+
+  // app.get(
+  //   '/auth/facebook',
+  //   passport.authenticate('facebook', {
+  //     scope: ['public_profile', 'email']
+  //   })
+  // );
+
+  // app.get('/auth/facebook', function(req, res) {
+  //   console.log('Routes Get Facebook');
+  //   passport.authenticate('facebook', {
+  //     scope: ['public_profile', 'email']
+  //   });
+  // });
+
+  // handle the callback after facebook has authenticated the user
+  app.post('/facebook', function(req, res, next) {
+    console.log('facebook route');
+    passport.authenticate('custom-facebook', function(err, user, info) {
+      console.log('err' + err);
+
+      console.log(res);
+      console.log(info);
+
+      //Establish a session and serializeUser
+      req.logIn(user, function(err) {
+        if (err) {
+          return next(err);
+        }
+        return res.send('/');
+      });
+    })(req, res, next);
+  });
+
+  // route for logging out
+  app.get('/logout', function(req, res) {
+    req.logout();
+  });
 };
 
 // route middleware to make sure a user is logged in
 function isLoggedIn(req, res, next) {
+  console.log('CheckLoggedIn');
   // if user is authenticated in the session, carry on
-  if (req.isAuthenticated()) return next();
-
+  if (req.isAuthenticated()) {
+    console.log('isAuthenticated');
+    return next();
+  }
+  console.log('notAuthenticated');
   // if they aren't redirect them to the home page
   res.redirect('/');
 }

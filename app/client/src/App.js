@@ -9,6 +9,7 @@ import logo from './logo.svg';
 import Main from './Components/Main';
 import Login from './Components/Login';
 import Signup from './Components/Signup';
+import Profile from './Components/Profile';
 import './App.css';
 
 class App extends Component {
@@ -30,6 +31,11 @@ class App extends Component {
             exact
             path={process.env.PUBLIC_URL + '/signup'}
             render={() => <Signup />}
+          />
+          <Route
+            exact
+            path={process.env.PUBLIC_URL + '/profile'}
+            render={() => <Profile />}
           />
         </div>
       </Router>

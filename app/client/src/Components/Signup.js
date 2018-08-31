@@ -39,6 +39,7 @@ export default class Signup extends Component {
       method: 'post',
       url: '/signup',
       data: formData,
+      withCredentials: true,
       config: {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       }
